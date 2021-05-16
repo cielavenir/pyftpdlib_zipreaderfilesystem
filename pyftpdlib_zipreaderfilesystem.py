@@ -119,7 +119,7 @@ if __name__ == '__main__':
     from sys import argv
     authorizer = DummyAuthorizer()
     handler = FTPHandler
-    handler.use_sendfile = False
+    handler.use_sendfile = False # required as the open() returns non-real-file
     handler.authorizer = authorizer
     authorizer.add_user(environ['USER'], '', '/', perm='elr')
     handler.abstracted_fs = ZipReaderFileSystem.withFilename(argv[1])
