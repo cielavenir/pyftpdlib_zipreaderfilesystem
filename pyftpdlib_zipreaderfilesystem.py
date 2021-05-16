@@ -1,4 +1,5 @@
 from pyftpdlib.filesystems import AbstractedFS
+from pyftpdlib.filesystems import FilesystemError
 from os.path import join
 from os.path import dirname
 from os.path import basename
@@ -44,6 +45,8 @@ class ZipReaderFileSystem(AbstractedFS):
                     self.__namelist.append(name)
 
     def stat(self, path):
+        if path[0] == '/':
+            path = path[1:]
         st=ZipReaderFileSystem.ST()
         if path in self.__dirnames:
             st.st_mode=0o755
@@ -64,9 +67,13 @@ class ZipReaderFileSystem(AbstractedFS):
 
     def open(self, filename, mode):
         path = filename
-        return self.__zip.open(filename, mode.replace('b',''))
+        if path[0] == '/':
+            path = path[1:]
+        return self.__zip.open(path, mode.replace('b',''))
 
     def listdir(self, path):
+        if path[0] == '/':
+            path = path[1:]
         res = []
         for name in self.__namelist:
             if name.endswith('/'):
@@ -79,25 +86,30 @@ class ZipReaderFileSystem(AbstractedFS):
 
     def ftp2fs(self, path):
         if path[0] == '/':
-            path = path[1:]
+            pass #path = path[1:]
         else:
-            path = join(self.cwd[1:], path)
+            path = join(self.cwd, path)
         return path
 
     def validpath(self, path):
         return True
 
     def isdir(self, path):
-        if path=='':
-            return True
+        if path[0] == '/':
+            path = path[1:]
         return path in self.__dirnames
 
     def isfile(self, path):
         return not self.isdir(path)
 
     def chdir(self, path):
-        self.cwd = unicode(normpath(join(self.cwd,path+'/')))
-        # todo make chdir fails if no such directory
+        if path[0]=='/':
+            normpath(path+'/')
+        else:
+            path = normpath(join(self.cwd,path+'/'))
+        if path[1:] not in self.__dirnames:
+            raise FilesystemError('no such file or directory /%s'%path[1:])
+        self.cwd = unicode(path)
 
 if __name__ == '__main__':
     from pyftpdlib.handlers import FTPHandler
@@ -107,6 +119,7 @@ if __name__ == '__main__':
     from sys import argv
     authorizer = DummyAuthorizer()
     handler = FTPHandler
+    handler.use_sendfile = False
     handler.authorizer = authorizer
     authorizer.add_user(environ['USER'], '', '/', perm='elr')
     handler.abstracted_fs = ZipReaderFileSystem.withFilename(argv[1])
