@@ -108,7 +108,7 @@ class ZipReaderFileSystem(AbstractedFS):
         else:
             path = normpath(join(self.cwd,path+'/'))
         if path[1:] not in self.__dirnames:
-            raise FilesystemError('no such file or directory /%s'%path[1:])
+            raise FilesystemError('no such directory /%s'%path[1:])
         self.cwd = unicode(path)
 
 if __name__ == '__main__':
