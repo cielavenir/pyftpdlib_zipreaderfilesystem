@@ -6,7 +6,7 @@ setup(
     long_description=open("README.md").read(),
     version='0.0.0.1',
     url='https://github.com/cielavenir/pyftpdlib_zipreaderfilesystem',
-    license='BSD',
+    license='MIT',
     author='cielavenir',
     author_email='cielartisan@gmail.com',
     py_modules=['pyftpdlib_zipreaderfilesystem'],
@@ -17,7 +17,7 @@ setup(
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: BSD License',
+        'License :: OSI Approved :: MIT License',
         'Operating System :: POSIX',
         'Operating System :: Microsoft :: Windows',
         'Operating System :: MacOS :: MacOS X',
