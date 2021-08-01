@@ -4,7 +4,9 @@ pyftpdlib abstracted\_fs for reading zip entries.
 
 ### Installation
 
-I'm not planning to upload this mess to pypi, use git.
+https://pypi.org/project/pyftpdlib-zipreaderfilesystem/
+
+or use git:
 
 ```
 pip install git+https://github.com/cielavenir/pyftpdlib_zipreaderfilesystem.git
