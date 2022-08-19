@@ -6,6 +6,7 @@ from os.path import basename
 from os.path import normpath
 from os import getuid
 from os import getgid
+from os import stat_result
 from calendar import timegm
 from zipfile import ZipFile
 
@@ -17,19 +18,19 @@ class ZipReaderFileSystem(AbstractedFS):
     '''
     usage: handler.abstracted_fs = ZipReaderFileSystem.withFilename(zipFileName)
     '''
-    class ST:
-        pass
+
+    filename = None
 
     @classmethod
-    def withFilename(cls, filename):
-        def wrapper(fakeSelf, root, cmd_channel):
-            return cls(root, cmd_channel, filename)
-        return wrapper
+    def withFilename(cls, argFilename):
+        class DynamicZipReaderFileSystem(cls):
+            filename = argFilename
+        return DynamicZipReaderFileSystem
 
-    def __init__(self, root, cmd_channel, filename):
+    def __init__(self, root, cmd_channel):
         AbstractedFS.__init__(self, root, cmd_channel)
         self.cwd = u'/'
-        self.__zip = ZipFile(filename, 'r')
+        self.__zip = ZipFile(self.filename, 'r')
 
         self.__namelist = self.__zip.namelist()
         self.__dirnames = set(name.rstrip('/') for name in self.__namelist if name.endswith('/'))
@@ -47,20 +48,27 @@ class ZipReaderFileSystem(AbstractedFS):
     def stat(self, path):
         if path[0] == '/':
             path = path[1:]
-        st=ZipReaderFileSystem.ST()
         if path in self.__dirnames:
-            st.st_mode=0o755
-            st.st_size=0
-            st.st_mtime=0
+            st_mode=0o755
+            st_size=0
+            st_mtime=0
         else:
-            info = self.__zip.getinfo(path)
-            st.st_mode=0o644
-            st.st_size=info.file_size
-            st.st_mtime=int(timegm(info.date_time))
-        st.st_nlink = 1
-        st.st_uid = getuid()
-        st.st_gid = getgid()
-        return st
+            info = self.__zip.getinfo(path)  # will raise KeyError if not existing
+            st_mode=0o644
+            st_size=info.file_size
+            st_mtime=int(timegm(info.date_time))
+        return stat_result(
+            st_mode=st_mode,
+            st_ino=0,
+            st_dev=0,
+            st_nlink=1,
+            st_uid=getuid(),
+            st_gid=getgid(),
+            st_size=st_size,
+            st_atime=st_mtime,
+            st_mtime=st_mtime,
+            st_ctime=st_mtime,
+        )
 
     def lstat(self, path):
         return self.stat(path)
@@ -93,6 +101,9 @@ class ZipReaderFileSystem(AbstractedFS):
 
     def validpath(self, path):
         return True
+
+    def getsize(self, path):
+        return getattr(self.stat(path), 'st_size', 0)
 
     def isdir(self, path):
         if path[0] == '/':
