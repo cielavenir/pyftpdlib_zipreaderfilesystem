@@ -57,18 +57,25 @@ class ZipReaderFileSystem(AbstractedFS):
             st_mode=0o644
             st_size=info.file_size
             st_mtime=int(timegm(info.date_time))
-        return stat_result(
-            st_mode=st_mode,
-            st_ino=0,
-            st_dev=0,
-            st_nlink=1,
-            st_uid=getuid(),
-            st_gid=getgid(),
-            st_size=st_size,
-            st_atime=st_mtime,
-            st_mtime=st_mtime,
-            st_ctime=st_mtime,
-        )
+        st_ino=0
+        st_dev=1
+        st_nlink=1
+        st_uid=getuid()
+        st_gid=getgid()
+        st_atime=st_mtime
+        st_ctime=st_mtime
+        return stat_result((
+            st_mode,
+            st_ino,
+            st_dev,
+            st_nlink,
+            st_uid,
+            st_gid,
+            st_size,
+            st_atime,
+            st_mtime,
+            st_ctime,
+        ))
 
     def lstat(self, path):
         return self.stat(path)
