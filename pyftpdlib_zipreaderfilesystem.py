@@ -121,8 +121,10 @@ class ZipReaderFileSystem(AbstractedFS):
         return not self.isdir(path)
 
     def chdir(self, path):
-        if path[0]=='/':
-            normpath(path+'/')
+        if path=='/':
+            pass
+        elif path[0]=='/':
+            path = normpath(path+'/')
         else:
             path = normpath(join(self.cwd,path+'/'))
         if path[1:] not in self.__dirnames:
